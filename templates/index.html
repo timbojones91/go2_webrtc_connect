@@ -1,0 +1,2573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unitree Go2 Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .video-panel {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px;
+        }
+
+        .video-panel img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Gamepad Control Styles */
+        .gamepad-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+        }
+
+        .gamepad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .gamepad-header h3 {
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .gamepad-status {
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .gamepad-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .gamepad-status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .gamepad-status.emergency {
+            background: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .gamepad-info {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .gamepad-values {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            font-size: 0.75em;
+            margin-top: 10px;
+        }
+
+        .gamepad-value {
+            padding: 5px;
+            background: #e9ecef;
+            border-radius: 3px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        /* Settings Panel Styles */
+        .settings-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .settings-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .settings-content {
+            display: none;
+        }
+
+        .settings-content.expanded {
+            display: block;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .setting-group input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .setting-value {
+            display: inline-block;
+            min-width: 50px;
+            text-align: right;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-preset {
+            padding: 8px;
+            font-size: 0.85em;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-preset:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-preset.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .velocity-status-panel {
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        .velocity-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .velocity-status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .velocity-status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .velocity-status-value {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: #e9ecef;
+        }
+
+        .velocity-status-value.moving {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .velocity-status-value.stopped {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .latency-indicator {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .latency-excellent {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .latency-good {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .latency-acceptable {
+            background: #ffe5cc;
+            color: #cc5200;
+        }
+
+        .latency-poor {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .connection-method {
+            font-size: 0.75em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: #667eea;
+            color: white;
+            margin-left: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Speed Indicator Overlay */
+        .speed-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 15px;
+            font-size: 2.5em;
+            font-weight: bold;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.2s ease-in-out;
+            text-align: center;
+            min-width: 250px;
+        }
+
+        .speed-indicator .speed-label {
+            font-size: 0.5em;
+            color: #aaa;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .speed-indicator .speed-value {
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Unitree Go2 Web Interface</h1>
+            <p>Connect and control your robot from your browser</p>
+        </div>
+
+        <div class="content">
+            <div class="control-panel">
+                <div id="status" class="status disconnected">
+                    ⚫ Disconnected
+                </div>
+
+                <div class="form-group">
+                    <label for="connectionMethod">Connection Method</label>
+                    <select id="connectionMethod" onchange="updateFormFields()">
+                        <option value="LocalAP">Local AP (Robot WiFi)</option>
+                        <option value="LocalSTA" selected>Local STA (Same Network)</option>
+                        <option value="Remote">Remote (Internet)</option>
+                    </select>
+                </div>
+
+                <div id="ipField" class="form-group">
+                    <label for="ip">Robot IP Address</label>
+                    <input type="text" id="ip" placeholder="192.168.8.181">
+                </div>
+
+                <div id="serialField" class="form-group hidden">
+                    <label for="serialNumber">Serial Number</label>
+                    <input type="text" id="serialNumber" placeholder="B42D2000XXXXXXXX">
+                </div>
+
+                <div id="usernameField" class="form-group hidden">
+                    <label for="username">Unitree Account Email</label>
+                    <input type="email" id="username" placeholder="email@gmail.com">
+                </div>
+
+                <div id="passwordField" class="form-group hidden">
+                    <label for="password">Unitree Account Password</label>
+                    <input type="password" id="password" placeholder="Password">
+                </div>
+
+                <button id="connectBtn" class="btn btn-primary" onclick="connect()">
+                    Connect to Robot
+                </button>
+
+                <button id="disconnectBtn" class="btn btn-danger hidden" onclick="disconnect()">
+                    Disconnect
+                </button>
+
+                <div id="message"></div>
+
+                <!-- Gamepad Control Section -->
+                <div class="gamepad-section">
+                    <div class="gamepad-header">
+                        <h3>🎮 Gamepad Control</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="gamepadToggle" onchange="toggleGamepad()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div id="gamepadStatus" class="gamepad-status inactive">
+                        ⚫ Gamepad Disabled
+                    </div>
+
+                    <div class="gamepad-info">
+                        <strong>Controls:</strong><br>
+                        <small>
+                        • Left Stick: Move (LX=strafe, LY=forward/back)<br>
+                        • Right Stick: Turn & Pitch (RX=yaw, RY=pitch)<br>
+                        • LT/RT: Camera look left/right<br>
+                        • LB: Walk mode (hold to walk, release for pose)<br>
+                        • RB: Cycle body height<br>
+                        • X: Emergency stop<br>
+                        • Y: Stand up | A: Crouch | B: Lidar
+                        </small>
+                    </div>
+
+                    <div class="gamepad-values" id="gamepadValues">
+                        <div class="gamepad-value">LX: <span id="val-lx">0.00</span></div>
+                        <div class="gamepad-value">LY: <span id="val-ly">0.00</span></div>
+                        <div class="gamepad-value">RX: <span id="val-rx">0.00</span></div>
+                        <div class="gamepad-value">RY: <span id="val-ry">0.00</span></div>
+                        <div class="gamepad-value" style="grid-column: 1 / -1;">Latency: <span id="val-latency">--</span>ms</div>
+                    </div>
+
+                    <button class="btn btn-danger btn-small" onclick="clearEmergencyStop()" id="clearEmergencyBtn" style="display:none; width:100%; margin-top:10px;">
+                        Clear Emergency Stop
+                    </button>
+
+                    <!-- Velocity and Latency Status Panel -->
+                    <div class="velocity-status-panel">
+                        <div class="velocity-status-row">
+                            <span class="velocity-status-label">Velocity:</span>
+                            <span class="velocity-status-value stopped" id="velocityStatus">0.00 m/s</span>
+                        </div>
+                        <div class="velocity-status-row">
+                            <span class="velocity-status-label">Connection:</span>
+                            <span>
+                                <span class="latency-indicator latency-excellent" id="currentLatency">-- ms</span>
+                                <span class="connection-method" id="connectionMethod">HTTP</span>
+                            </span>
+                        </div>
+                        <div class="velocity-status-row">
+                            <span class="velocity-status-label">Avg Latency:</span>
+                            <span class="latency-indicator latency-excellent" id="avgLatency">-- ms</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keyboard & Mouse Control Section -->
+                <div class="gamepad-section" style="margin-top: 20px;">
+                    <div class="gamepad-header">
+                        <h3>⌨️ Keyboard & Mouse Control</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="keyboardMouseToggle" onchange="toggleKeyboardMouse()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="gamepad-status inactive" id="keyboardMouseStatus">
+                        ⚫ Keyboard/Mouse Disabled
+                    </div>
+
+                    <div class="gamepad-info">
+                        <strong>Controls:</strong><br>
+                        <small>
+                        • <strong>W/A/S/D</strong>: Move (W=forward, S=back, A=left, D=right)<br>
+                        • <strong>Mouse</strong>: Look around (X=yaw, Y=pitch)<br>
+                        • <strong>Click to capture</strong>: Enable mouse control<br>
+                        • <strong>ESC</strong>: Release mouse control<br>
+                        • <strong>Space</strong>: Emergency stop<br>
+                        • <strong>E</strong>: Stand up | <strong>Q</strong>: Crouch<br>
+                        • <strong>R</strong>: Toggle Lidar<br>
+                        • <strong>C</strong>: Push-to-talk (hold to transmit voice)
+                        </small>
+                    </div>
+
+                    <div class="gamepad-values" id="keyboardMouseValues">
+                        <div class="gamepad-value">Forward: <span id="val-kb-forward">0.00</span></div>
+                        <div class="gamepad-value">Strafe: <span id="val-kb-strafe">0.00</span></div>
+                        <div class="gamepad-value">Yaw: <span id="val-kb-yaw">0.00</span></div>
+                        <div class="gamepad-value">Pitch: <span id="val-kb-pitch">0.00</span></div>
+                    </div>
+
+                    <div id="mouseControlInfo" style="padding: 10px; margin-top: 10px; background: #fff3cd; border-radius: 5px; display: none;">
+                        <small>🖱️ <strong>Mouse captured</strong> - Move mouse to control robot. Press ESC to release.</small>
+                    </div>
+                </div>
+
+                <!-- Audio Streaming Section -->
+                <div class="gamepad-section" style="margin-top: 20px;">
+                    <div class="gamepad-header">
+                        <h3>🔊 Audio Streaming</h3>
+                    </div>
+
+                    <!-- Audio Streaming Toggle -->
+                    <div style="padding: 15px; border-bottom: 1px solid #ddd;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Enable Audio Playback</strong><br>
+                                <small style="color: #666;">Mute/unmute audio instantly (no reconnection needed)</small>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="audioStreamingToggle" onchange="toggleAudioStreaming()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="gamepad-status" id="audioStatus" style="background: #6c757d;">
+                        ⚪ Audio Muted
+                    </div>
+
+                    <div class="gamepad-info">
+                        <strong>Audio Features:</strong><br>
+                        <small>
+                        • <strong>Bidirectional audio</strong>: Hear robot and speak to robot<br>
+                        • <strong>Reception</strong>: Robot's microphones stream to your speakers<br>
+                        • <strong>Transmission</strong>: Server PC microphone streams to robot's speaker (push-to-talk)<br>
+                        • <strong>Push-to-Talk</strong>: Hold 'C' key or click button below to transmit<br>
+                        • <strong>Instant toggle</strong>: No reconnection required - audio stream always connected
+                        </small>
+                    </div>
+
+                    <div id="audioControls" style="padding: 15px; text-align: center; display: none;">
+                        <button id="pushToTalkBtn" class="btn btn-primary"
+                                onmousedown="startMicrophone()"
+                                onmouseup="stopMicrophone()"
+                                onmouseleave="stopMicrophone()"
+                                ontouchstart="startMicrophone()"
+                                ontouchend="stopMicrophone()"
+                                disabled
+                                style="width: 100%; padding: 15px; font-size: 16px; font-weight: bold;">
+                            🎤 Hold to Talk (or press 'C' key)
+                        </button>
+                        <div id="microphoneStatus" style="margin-top: 10px; font-size: 14px; color: #666;">
+                            Microphone: <span id="micStatusText">Not transmitting</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WebRTC Latency Test Section -->
+                <div class="gamepad-section" style="margin-top: 20px;">
+                    <div class="gamepad-header">
+                        <h3>⚡ Latency Test</h3>
+                    </div>
+
+                    <div style="padding: 15px;">
+                        <p style="margin-bottom: 10px; font-size: 14px;">
+                            Compare HTTP vs WebSocket vs WebRTC latency:
+                        </p>
+
+                        <button class="btn btn-primary" onclick="testHttpLatency()" style="width: 32%; margin-right: 1%;">
+                            Test HTTP
+                        </button>
+                        <button class="btn btn-primary" onclick="testWebSocketLatency()" style="width: 32%; margin-right: 1%; background: #28a745;">
+                            Test WebSocket
+                        </button>
+                        <button class="btn btn-primary" onclick="testWebRTCLatency()" style="width: 32%;">
+                            Test WebRTC
+                        </button>
+
+                        <div id="latencyTestResults" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-family: monospace; font-size: 13px;">
+                            <div><strong>HTTP Latency:</strong> <span id="httpLatency">--</span> ms</div>
+                            <div><strong>WebSocket Latency:</strong> <span id="websocketLatency">--</span> ms</div>
+                            <div><strong>WebRTC Latency:</strong> <span id="webrtcLatency">--</span> ms</div>
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6;">
+                                <strong>Best Method:</strong> <span id="latencyImprovement">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keyboard/Mouse Settings Panel -->
+                <div class="settings-panel">
+                    <div class="settings-header" onclick="toggleKeyboardMouseSettings()">
+                        <h3>⌨️ Keyboard/Mouse Settings</h3>
+                        <span id="kbMouseSettingsToggleIcon">▼</span>
+                    </div>
+                    <div id="kbMouseSettingsContent" class="settings-content">
+                        <!-- Mouse Sensitivity Settings -->
+                        <div class="setting-group">
+                            <label>Mouse Yaw Sensitivity: <span class="setting-value" id="val-mouse-yaw-sensitivity">0.5</span>x</label>
+                            <input type="range" id="mouse-yaw-sensitivity" min="0.1" max="2.0" step="0.1" value="0.5" oninput="updateKeyboardMouseSetting('mouse_yaw_sensitivity', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Mouse Pitch Sensitivity: <span class="setting-value" id="val-mouse-pitch-sensitivity">0.25</span>x</label>
+                            <input type="range" id="mouse-pitch-sensitivity" min="0.1" max="2.0" step="0.1" value="0.25" oninput="updateKeyboardMouseSetting('mouse_pitch_sensitivity', this.value)">
+                        </div>
+
+                        <!-- Keyboard Movement Settings -->
+                        <div class="setting-group">
+                            <label>Keyboard Forward/Back Speed: <span class="setting-value" id="val-keyboard-linear-speed">0.2</span>x</label>
+                            <input type="range" id="keyboard-linear-speed" min="0.1" max="2.0" step="0.1" value="0.2" oninput="updateKeyboardMouseSetting('keyboard_linear_speed', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Keyboard Strafe Speed: <span class="setting-value" id="val-keyboard-strafe-speed">0.2</span>x</label>
+                            <input type="range" id="keyboard-strafe-speed" min="0.1" max="2.0" step="0.1" value="0.2" oninput="updateKeyboardMouseSetting('keyboard_strafe_speed', this.value)">
+                        </div>
+
+                        <!-- Max Velocity Settings for Keyboard/Mouse -->
+                        <div class="setting-group">
+                            <label>Max Linear Velocity: <span class="setting-value" id="val-kb-max-linear-velocity">1.5</span> m/s</label>
+                            <input type="range" id="kb-max-linear-velocity" min="0.1" max="2.0" step="0.1" value="1.5" oninput="updateKeyboardMouseSetting('kb_max_linear_velocity', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Max Strafe Velocity: <span class="setting-value" id="val-kb-max-strafe-velocity">1.2</span> m/s</label>
+                            <input type="range" id="kb-max-strafe-velocity" min="0.1" max="1.5" step="0.1" value="1.2" oninput="updateKeyboardMouseSetting('kb_max_strafe_velocity', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Max Rotation Velocity: <span class="setting-value" id="val-kb-max-rotation-velocity">3.0</span> rad/s</label>
+                            <input type="range" id="kb-max-rotation-velocity" min="0.1" max="5.0" step="0.1" value="3.0" oninput="updateKeyboardMouseSetting('kb_max_rotation_velocity', this.value)">
+                        </div>
+
+                        <!-- Reset Button -->
+                        <div style="margin-top: 15px; text-align: center;">
+                            <button class="btn btn-secondary" onclick="resetKeyboardMouseSettings()" style="width: 100%;">
+                                Reset to Defaults
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gamepad Settings Panel -->
+                <div class="settings-panel">
+                    <div class="settings-header" onclick="toggleSettings()">
+                        <h3>⚙️ Gamepad Settings</h3>
+                        <span id="settingsToggleIcon">▼</span>
+                    </div>
+                    <div id="settingsContent" class="settings-content">
+                        <!-- Preset Buttons -->
+                        <div class="preset-buttons">
+                            <button class="btn-preset" onclick="applyPreset('beginner')">🐢 Beginner</button>
+                            <button class="btn-preset active" onclick="applyPreset('normal')">⚡ Normal</button>
+                            <button class="btn-preset" onclick="applyPreset('advanced')">🚀 Advanced</button>
+                            <button class="btn-preset" onclick="applyPreset('sport')">🏃 Sport</button>
+                        </div>
+
+                        <!-- Dead Zone Settings -->
+                        <div class="setting-group">
+                            <label>Left Stick Dead Zone: <span class="setting-value" id="val-deadzone-left">0.15</span></label>
+                            <input type="range" id="deadzone-left" min="0" max="0.5" step="0.01" value="0.15" oninput="updateSetting('deadzone_left_stick', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Right Stick Dead Zone: <span class="setting-value" id="val-deadzone-right">0.15</span></label>
+                            <input type="range" id="deadzone-right" min="0" max="0.5" step="0.01" value="0.15" oninput="updateSetting('deadzone_right_stick', this.value)">
+                        </div>
+
+                        <!-- Sensitivity Settings -->
+                        <div class="setting-group">
+                            <label>Linear Sensitivity: <span class="setting-value" id="val-sens-linear">1.0</span>x</label>
+                            <input type="range" id="sens-linear" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSetting('sensitivity_linear', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Strafe Sensitivity: <span class="setting-value" id="val-sens-strafe">1.0</span>x</label>
+                            <input type="range" id="sens-strafe" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSetting('sensitivity_strafe', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Rotation Sensitivity: <span class="setting-value" id="val-sens-rotation">1.0</span>x</label>
+                            <input type="range" id="sens-rotation" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSetting('sensitivity_rotation', this.value)">
+                        </div>
+
+                        <!-- Speed Multiplier -->
+                        <div class="setting-group">
+                            <label>Speed Multiplier: <span class="setting-value" id="val-speed-mult">1.0</span>x</label>
+                            <input type="range" id="speed-mult" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSetting('speed_multiplier', this.value)">
+                        </div>
+
+                        <!-- Max Velocity Settings -->
+                        <div class="setting-group">
+                            <label>Max Linear Velocity: <span class="setting-value" id="val-max-linear">0.6</span> m/s</label>
+                            <input type="range" id="max-linear" min="0.1" max="1.0" step="0.1" value="0.6" oninput="updateSetting('max_linear_velocity', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Max Strafe Velocity: <span class="setting-value" id="val-max-strafe">0.4</span> m/s</label>
+                            <input type="range" id="max-strafe" min="0.1" max="0.8" step="0.1" value="0.4" oninput="updateSetting('max_strafe_velocity', this.value)">
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Max Rotation Velocity: <span class="setting-value" id="val-max-rotation">0.8</span> rad/s</label>
+                            <input type="range" id="max-rotation" min="0.1" max="1.5" step="0.1" value="0.8" oninput="updateSetting('max_rotation_velocity', this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="video-panel">
+                <img id="videoFeed" src="/video_feed" alt="Robot Video Feed">
+            </div>
+        </div>
+    </div>
+
+    <!-- Speed Indicator Overlay -->
+    <div id="speedIndicator" class="speed-indicator">
+        <div class="speed-label">Movement Speed</div>
+        <div class="speed-value" id="speedValue">100%</div>
+    </div>
+
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <script>
+        let isConnected = false;
+
+        // ========== WEBSOCKET INITIALIZATION ==========
+        const socket = io();
+        let socketConnected = false;
+        let useWebSocket = true;  // Prefer WebSocket, fallback to HTTP if needed
+
+        socket.on('connect', () => {
+            console.log('✅ WebSocket connected');
+            socketConnected = true;
+            useWebSocket = true;
+        });
+
+        socket.on('disconnect', () => {
+            console.log('❌ WebSocket disconnected');
+            socketConnected = false;
+            useWebSocket = false;  // Fallback to HTTP
+        });
+
+        socket.on('reconnect', () => {
+            console.log('🔄 WebSocket reconnected');
+            socketConnected = true;
+            useWebSocket = true;
+        });
+
+        socket.on('command_response', (data) => {
+            // Calculate WebSocket latency
+            if (currentCommandStartTime > 0) {
+                const latency = performance.now() - currentCommandStartTime;
+                updateLatencyDisplay(latency, 'WebSocket');
+                currentCommandStartTime = 0;
+            }
+        });
+
+        function updateFormFields() {
+            const method = document.getElementById('connectionMethod').value;
+            const ipField = document.getElementById('ipField');
+            const serialField = document.getElementById('serialField');
+            const usernameField = document.getElementById('usernameField');
+            const passwordField = document.getElementById('passwordField');
+
+            // Hide all optional fields
+            ipField.classList.add('hidden');
+            serialField.classList.add('hidden');
+            usernameField.classList.add('hidden');
+            passwordField.classList.add('hidden');
+
+            // Show relevant fields based on method
+            if (method === 'LocalAP') {
+                // No additional fields needed
+            } else if (method === 'LocalSTA') {
+                ipField.classList.remove('hidden');
+                serialField.classList.remove('hidden');
+            } else if (method === 'Remote') {
+                serialField.classList.remove('hidden');
+                usernameField.classList.remove('hidden');
+                passwordField.classList.remove('hidden');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        async function connect() {
+            const method = document.getElementById('connectionMethod').value;
+            const ip = document.getElementById('ip').value;
+            const serialNumber = document.getElementById('serialNumber').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
+
+            try {
+                const response = await fetch('/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        method: method,
+                        ip: ip,
+                        serial_number: serialNumber,
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    isConnected = true;
+                    updateUI();
+                    showMessage('Successfully connected to robot!', 'success');
+
+                    // Save IP address to localStorage on successful connection
+                    if (ip) {
+                        localStorage.setItem('lastRobotIP', ip);
+                        console.log('Saved IP address to localStorage:', ip);
+                    }
+
+                    // Audio is always initialized on connection (but muted by default)
+                    // Show push-to-talk controls if audio is enabled
+                    const audioControls = document.getElementById('audioControls');
+                    if (audioStreamingEnabled) {
+                        await initializeAudio();
+                        audioControls.style.display = 'block';
+                        console.log('✅ Audio connected and unmuted - push-to-talk available');
+                    } else {
+                        audioControls.style.display = 'none';
+                        console.log('ℹ️ Audio connected but muted - toggle to enable playback');
+                    }
+                } else {
+                    showMessage('Connection failed: ' + data.message, 'error');
+                    connectBtn.disabled = false;
+                    connectBtn.textContent = 'Connect to Robot';
+                }
+            } catch (error) {
+                showMessage('Connection error: ' + error.message, 'error');
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect to Robot';
+            }
+        }
+
+        async function disconnect() {
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            disconnectBtn.disabled = true;
+            disconnectBtn.textContent = 'Disconnecting...';
+
+            try {
+                const response = await fetch('/disconnect', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    isConnected = false;
+                    updateUI();
+
+                    // Hide audio controls
+                    const audioControls = document.getElementById('audioControls');
+                    if (audioControls) {
+                        audioControls.style.display = 'none';
+                    }
+
+                    // Disable push-to-talk button
+                    const pushToTalkBtn = document.getElementById('pushToTalkBtn');
+                    if (pushToTalkBtn) {
+                        pushToTalkBtn.disabled = true;
+                    }
+
+                    // Reset microphone status
+                    isTransmitting = false;
+                    const statusText = document.getElementById('micStatusText');
+                    if (statusText) {
+                        statusText.textContent = 'Not transmitting';
+                        statusText.style.color = '#666';
+                    }
+
+                    // Reset audio status based on toggle state
+                    const audioStatus = document.getElementById('audioStatus');
+                    if (audioStreamingEnabled) {
+                        audioStatus.className = 'gamepad-status active';
+                        audioStatus.textContent = '🟢 Audio Unmuted (Connect to activate)';
+                    } else {
+                        audioStatus.className = 'gamepad-status';
+                        audioStatus.style.background = '#6c757d';
+                        audioStatus.textContent = '⚪ Audio Muted';
+                    }
+
+                    showMessage('Disconnected from robot', 'success');
+                } else {
+                    showMessage('Disconnect failed: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Disconnect error: ' + error.message, 'error');
+            } finally {
+                disconnectBtn.disabled = false;
+                disconnectBtn.textContent = 'Disconnect';
+            }
+        }
+
+        function updateUI() {
+            const status = document.getElementById('status');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+
+            if (isConnected) {
+                status.textContent = '🟢 Connected';
+                status.className = 'status connected';
+                connectBtn.classList.add('hidden');
+                disconnectBtn.classList.remove('hidden');
+            } else {
+                status.textContent = '⚫ Disconnected';
+                status.className = 'status disconnected';
+                connectBtn.classList.remove('hidden');
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect to Robot';
+                disconnectBtn.classList.add('hidden');
+            }
+        }
+
+        // Check connection status periodically
+        setInterval(async () => {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                if (data.connected !== isConnected) {
+                    isConnected = data.connected;
+                    updateUI();
+                }
+                // Update emergency stop status
+                if (data.emergency_stop) {
+                    showEmergencyStop();
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }, 2000);
+
+        // ========== GAMEPAD CONTROL ==========
+        let gamepadEnabled = false;
+        let gamepadIndex = null;
+        let gamepadInterval = null;
+        let lastButtonStates = {};
+        const DEADZONE = 0.1;
+        const POLL_RATE = 33; // 30Hz - balanced for responsiveness without overwhelming network
+        let commandInFlight = false; // Track if a command is being sent
+        let lastCommandTime = 0; // Track command timing
+        let commandLatencies = []; // Track latency history
+
+        // Continuous latency monitoring
+        let currentCommandStartTime = 0;
+        let lastVelocityMagnitude = 0;
+        let websocketResponseReceived = false;
+
+        function applyDeadzone(value) {
+            return Math.abs(value) < DEADZONE ? 0 : value;
+        }
+
+        function updateLatencyDisplay(latency, method) {
+            // Update current latency
+            const currentLatencySpan = document.getElementById('currentLatency');
+            if (currentLatencySpan) {
+                currentLatencySpan.textContent = latency.toFixed(0) + ' ms';
+            }
+
+            // Update connection method
+            const methodSpan = document.getElementById('connectionMethod');
+            if (methodSpan) {
+                methodSpan.textContent = method;
+            }
+
+            // Track latency history
+            commandLatencies.push(latency);
+            if (commandLatencies.length > 10) commandLatencies.shift();
+
+            // Calculate and display average
+            const avgLatency = commandLatencies.reduce((a, b) => a + b, 0) / commandLatencies.length;
+            const avgLatencySpan = document.getElementById('avgLatency');
+            if (avgLatencySpan) {
+                avgLatencySpan.textContent = avgLatency.toFixed(0) + ' ms';
+            }
+
+            // Apply color coding to current latency
+            if (currentLatencySpan) {
+                currentLatencySpan.className = 'latency-indicator';
+                if (latency < 100) {
+                    currentLatencySpan.classList.add('latency-excellent');
+                } else if (latency < 200) {
+                    currentLatencySpan.classList.add('latency-good');
+                } else if (latency < 300) {
+                    currentLatencySpan.classList.add('latency-acceptable');
+                } else {
+                    currentLatencySpan.classList.add('latency-poor');
+                }
+            }
+
+            // Apply color coding to average latency
+            if (avgLatencySpan) {
+                avgLatencySpan.className = 'latency-indicator';
+                if (avgLatency < 100) {
+                    avgLatencySpan.classList.add('latency-excellent');
+                } else if (avgLatency < 200) {
+                    avgLatencySpan.classList.add('latency-good');
+                } else if (avgLatency < 300) {
+                    avgLatencySpan.classList.add('latency-acceptable');
+                } else {
+                    avgLatencySpan.classList.add('latency-poor');
+                }
+            }
+        }
+
+        function detectGamepad() {
+            const gamepads = navigator.getGamepads();
+            for (let i = 0; i < gamepads.length; i++) {
+                if (gamepads[i]) {
+                    gamepadIndex = i;
+                    console.log('Gamepad detected:', gamepads[i].id);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        async function toggleGamepad() {
+            const toggle = document.getElementById('gamepadToggle');
+            gamepadEnabled = toggle.checked;
+
+            if (gamepadEnabled) {
+                if (!isConnected) {
+                    alert('Please connect to the robot first!');
+                    toggle.checked = false;
+                    gamepadEnabled = false;
+                    return;
+                }
+
+                if (!detectGamepad()) {
+                    alert('No gamepad detected! Please connect a gamepad and press any button.');
+                    toggle.checked = false;
+                    gamepadEnabled = false;
+                    return;
+                }
+
+                // Enable gamepad on server
+                try {
+                    const response = await fetch('/control/gamepad/enable', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({enable: true})
+                    });
+
+                    if (response.ok) {
+                        startGamepadPolling();
+                        updateGamepadStatus('active', '🟢 Gamepad Active');
+                    } else {
+                        throw new Error('Failed to enable gamepad');
+                    }
+                } catch (error) {
+                    console.error('Error enabling gamepad:', error);
+                    toggle.checked = false;
+                    gamepadEnabled = false;
+                    alert('Failed to enable gamepad control');
+                }
+            } else {
+                stopGamepadPolling();
+                updateGamepadStatus('inactive', '⚫ Gamepad Disabled');
+
+                // Disable gamepad on server
+                try {
+                    await fetch('/control/gamepad/enable', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({enable: false})
+                    });
+                } catch (error) {
+                    console.error('Error disabling gamepad:', error);
+                }
+            }
+        }
+
+        function startGamepadPolling() {
+            if (gamepadInterval) return;
+
+            gamepadInterval = setInterval(() => {
+                pollGamepad();
+            }, POLL_RATE);
+        }
+
+        function stopGamepadPolling() {
+            if (gamepadInterval) {
+                clearInterval(gamepadInterval);
+                gamepadInterval = null;
+            }
+
+            // Reset display values
+            document.getElementById('val-lx').textContent = '0.00';
+            document.getElementById('val-ly').textContent = '0.00';
+            document.getElementById('val-rx').textContent = '0.00';
+            document.getElementById('val-ry').textContent = '0.00';
+        }
+
+        function updateGamepadStatus(className, text) {
+            const status = document.getElementById('gamepadStatus');
+            status.className = 'gamepad-status ' + className;
+            status.textContent = text;
+        }
+
+        function showEmergencyStop() {
+            updateGamepadStatus('emergency', '🛑 EMERGENCY STOP ACTIVE');
+            document.getElementById('clearEmergencyBtn').style.display = 'block';
+            stopGamepadPolling();
+            document.getElementById('gamepadToggle').checked = false;
+            gamepadEnabled = false;
+        }
+
+        async function clearEmergencyStop() {
+            try {
+                const response = await fetch('/control/action', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'clear_emergency'})
+                });
+
+                if (response.ok) {
+                    document.getElementById('clearEmergencyBtn').style.display = 'none';
+                    updateGamepadStatus('inactive', '⚫ Gamepad Disabled');
+                }
+            } catch (error) {
+                console.error('Error clearing emergency stop:', error);
+            }
+        }
+
+        async function pollGamepad() {
+            if (!gamepadEnabled || gamepadIndex === null) return;
+
+            const gamepad = navigator.getGamepads()[gamepadIndex];
+            if (!gamepad) {
+                console.warn('Gamepad disconnected');
+                stopGamepadPolling();
+                updateGamepadStatus('inactive', '⚠️ Gamepad Disconnected');
+                document.getElementById('gamepadToggle').checked = false;
+                gamepadEnabled = false;
+                return;
+            }
+
+            // Read and apply deadzone to axes
+            const lx = applyDeadzone(gamepad.axes[0]);   // Left stick X (strafe)
+            const ly = applyDeadzone(-gamepad.axes[1]);  // Left stick Y (forward/back, inverted)
+            const rx = applyDeadzone(gamepad.axes[2]);   // Right stick X (yaw)
+            const ry = applyDeadzone(-gamepad.axes[3]);  // Right stick Y (pitch, inverted)
+
+            // Update display
+            document.getElementById('val-lx').textContent = lx.toFixed(2);
+            document.getElementById('val-ly').textContent = ly.toFixed(2);
+            document.getElementById('val-rx').textContent = rx.toFixed(2);
+            document.getElementById('val-ry').textContent = ry.toFixed(2);
+
+            // Get velocity settings from localStorage
+            const settings = JSON.parse(localStorage.getItem('gamepadSettings') || '{}');
+            const sensLinear = parseFloat(settings.sensitivity_linear || 1.0);
+            const sensStrafe = parseFloat(settings.sensitivity_strafe || 1.0);
+            const sensRotation = parseFloat(settings.sensitivity_rotation || 1.0);
+            const speedMult = parseFloat(settings.speed_multiplier || 1.0);
+            const maxLinear = parseFloat(settings.max_linear_velocity || 0.6);
+            const maxStrafe = parseFloat(settings.max_strafe_velocity || 0.4);
+            const maxRotation = parseFloat(settings.max_rotation_velocity || 0.8);
+
+            // Apply sensitivity and velocity limits
+            let vx = ly * sensLinear * speedMult;
+            let vy = -lx * sensStrafe * speedMult;
+            let vyaw = -rx * sensRotation * speedMult;
+
+            // Clamp to max velocities
+            vx = Math.max(-maxLinear, Math.min(maxLinear, vx));
+            vy = Math.max(-maxStrafe, Math.min(maxStrafe, vy));
+            vyaw = Math.max(-maxRotation, Math.min(maxRotation, vyaw));
+
+            // Calculate velocity magnitude for display
+            const velocityMagnitude = Math.sqrt(vx*vx + vy*vy + vyaw*vyaw);
+
+            // Update velocity status display
+            const velocityStatus = document.getElementById('velocityStatus');
+            if (velocityStatus) {
+                velocityStatus.textContent = velocityMagnitude.toFixed(2) + ' m/s';
+
+                if (velocityMagnitude > 0.01) {
+                    velocityStatus.classList.remove('stopped');
+                    velocityStatus.classList.add('moving');
+                } else {
+                    velocityStatus.classList.remove('moving');
+                    velocityStatus.classList.add('stopped');
+                }
+            }
+
+            // Send movement command via WebSocket (preferred) or HTTP (fallback)
+            if (!commandInFlight) {
+                commandInFlight = true;
+                const sendTime = performance.now();
+
+                if (useWebSocket && socketConnected) {
+                    // ========== WEBSOCKET PATH (LOW LATENCY) ==========
+                    // Track start time for latency measurement
+                    currentCommandStartTime = performance.now();
+                    socket.emit('control_command', {lx, ly, rx, ry});
+                    commandInFlight = false; // Don't block on WebSocket
+                } else {
+                    // ========== HTTP FALLBACK PATH ==========
+                    fetch('/control/command', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({lx, ly, rx, ry})
+                    })
+                    .then(response => {
+                        const latency = performance.now() - sendTime;
+                        updateLatencyDisplay(latency, 'HTTP');
+                        commandInFlight = false;
+
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Command failed');
+                    })
+                    .catch(error => {
+                        commandInFlight = false;
+                        console.error('Error sending movement command:', error);
+                    });
+                }
+            }
+
+            // Handle button presses (detect rising edge)
+            handleButton(gamepad, 0, 'crouch');          // A button - Crouch
+            handleButton(gamepad, 1, 'lidar_switch');    // B button
+            handleButton(gamepad, 2, 'emergency_stop');  // X button
+            handleButton(gamepad, 3, 'free_walk');       // Y button - Enter Free Walk (Agile Mode)
+            // LB button handled separately below for continuous press
+            handleButton(gamepad, 5, 'toggle_height');   // RB (Right Bumper)
+
+            // D-pad buttons for AI Mode Free functions
+            handleButton(gamepad, 12, 'speed_level_up');     // D-pad Up - Increase speed
+            handleButton(gamepad, 13, 'speed_level_down');   // D-pad Down - Decrease speed
+            handleButton(gamepad, 14, 'toggle_free_bound');  // D-pad Left - Toggle Bound Run
+            handleButton(gamepad, 15, 'toggle_free_jump');   // D-pad Right - Toggle Jump Mode
+
+            // Back/Select button for FreeAvoid toggle (button 8)
+            handleButton(gamepad, 8, 'toggle_free_avoid');   // Back/Select - Toggle Avoidance Mode
+
+            // Handle LB button for continuous walk mode (press to walk, release to pose)
+            const lbPressed = gamepad.buttons[4].pressed;
+            const lbWasPressed = lastButtonStates[4] || false;
+
+            if (lbPressed && !lbWasPressed) {
+                // LB just pressed - enable walk mode (ContinuousGait)
+                console.log('Enabling walk mode (ContinuousGait)');
+                try {
+                    await fetch('/control/action', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({action: 'enable_walk_mode'})
+                    });
+                } catch (error) {
+                    console.error('Error enabling walk mode:', error);
+                }
+            } else if (!lbPressed && lbWasPressed) {
+                // LB just released - return to pose mode
+                console.log('Disabling walk mode (returning to pose)');
+                try {
+                    await fetch('/control/action', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({action: 'disable_walk_mode'})
+                    });
+                } catch (error) {
+                    console.error('Error disabling walk mode:', error);
+                }
+            }
+            lastButtonStates[4] = lbPressed;
+
+            // Handle triggers (LT/RT for camera control using Euler command)
+            // Read trigger values - different gamepads use different mappings
+            let lt = 0, rt = 0;
+
+            // Try buttons first (some gamepads)
+            if (gamepad.buttons[6]) {
+                lt = gamepad.buttons[6].value;
+            }
+            if (gamepad.buttons[7]) {
+                rt = gamepad.buttons[7].value;
+            }
+
+            // Try axes if buttons didn't work (other gamepads)
+            if (lt === 0 && gamepad.axes[6] !== undefined) {
+                lt = (gamepad.axes[6] + 1) / 2; // Convert from -1..1 to 0..1
+            }
+            if (rt === 0 && gamepad.axes[7] !== undefined) {
+                rt = (gamepad.axes[7] + 1) / 2; // Convert from -1..1 to 0..1
+            }
+
+            // Calculate camera yaw based on triggers (LT = left, RT = right)
+            const camera_yaw = (rt - lt) * 0.5; // Range: -0.5 to 0.5 radians
+
+            // Send camera control if triggers are pressed
+            if (Math.abs(camera_yaw) > 0.1) {
+                try {
+                    await fetch('/control/camera', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({yaw: camera_yaw})
+                    });
+                } catch (error) {
+                    console.error('Error sending camera command:', error);
+                }
+            }
+        }
+
+        async function handleButton(gamepad, buttonIndex, action) {
+            const pressed = gamepad.buttons[buttonIndex].pressed;
+            const wasPressed = lastButtonStates[buttonIndex] || false;
+
+            // Detect rising edge (button just pressed)
+            if (pressed && !wasPressed) {
+                console.log('Button pressed:', action);
+
+                try {
+                    const response = await fetch('/control/action', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({action})
+                    });
+
+                    if (!response.ok) {
+                        console.error('Action failed:', action);
+                    }
+
+                    // Special handling for emergency stop
+                    if (action === 'emergency_stop') {
+                        showEmergencyStop();
+                    }
+                } catch (error) {
+                    console.error('Error sending action:', error);
+                }
+            }
+
+            lastButtonStates[buttonIndex] = pressed;
+        }
+
+        // Listen for gamepad connection events
+        window.addEventListener('gamepadconnected', (e) => {
+            console.log('Gamepad connected:', e.gamepad.id);
+            gamepadIndex = e.gamepad.index;
+        });
+
+        window.addEventListener('gamepaddisconnected', (e) => {
+            console.log('Gamepad disconnected:', e.gamepad.id);
+            if (e.gamepad.index === gamepadIndex) {
+                stopGamepadPolling();
+                updateGamepadStatus('inactive', '⚠️ Gamepad Disconnected');
+                document.getElementById('gamepadToggle').checked = false;
+                gamepadEnabled = false;
+                gamepadIndex = null;
+            }
+        });
+
+        // ========== KEYBOARD & MOUSE CONTROL ==========
+        let keyboardMouseEnabled = false;
+        let keyboardMouseInterval = null;
+        let keysPressed = {};
+        let mouseMovement = {x: 0, y: 0};
+        let pointerLocked = false;
+        const KEYBOARD_POLL_RATE = 33; // 30Hz - same as gamepad
+
+        // Velocity ramping for smooth acceleration/deceleration
+        let currentVelocities = {
+            linear: 0.0,    // Current forward/backward velocity
+            strafe: 0.0,    // Current left/right strafe velocity
+            rotation: 0.0   // Current rotation velocity
+        };
+
+        // Acceleration rates (units per second)
+        const ACCELERATION_RATE = 3.0;      // How fast to accelerate (m/s² or rad/s²)
+        const DECELERATION_RATE = 4.0;      // How fast to decelerate (faster than acceleration for responsive stopping)
+        const ROTATION_ACCEL_RATE = 6.0;    // Rotation accelerates faster for responsive turning
+
+        // Default keyboard/mouse settings (will be overridden by localStorage)
+        // NOTE: Physical BT remote can achieve much higher speeds - these are conservative defaults
+        const DEFAULT_KB_MOUSE_SETTINGS = {
+            mouse_yaw_sensitivity: 0.5,
+            mouse_pitch_sensitivity: 0.25,
+            keyboard_linear_speed: 0.2,     // Start at 20% speed
+            keyboard_strafe_speed: 0.2,     // Start at 20% speed
+            kb_max_linear_velocity: 1.5,    // Increased from 0.6 to match BT remote capabilities
+            kb_max_strafe_velocity: 1.2,    // Increased from 0.4 to match BT remote capabilities
+            kb_max_rotation_velocity: 3.0   // Increased from 2.0 to match BT remote capabilities
+        };
+
+        async function toggleKeyboardMouse() {
+            const toggle = document.getElementById('keyboardMouseToggle');
+            const enable = toggle.checked;
+
+            if (enable) {
+                if (!isConnected) {
+                    alert('Please connect to the robot first!');
+                    toggle.checked = false;
+                    return;
+                }
+
+                // Enable keyboard/mouse control on backend
+                try {
+                    const response = await fetch('/control/keyboard_mouse/enable', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({enable: true})
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to enable keyboard/mouse control');
+                    }
+
+                    // Initialize keyboard/mouse control
+                    keyboardMouseEnabled = true;
+                    console.log('✅ Keyboard/Mouse control enabled');
+                    updateKeyboardMouseStatus('active', '🟢 Keyboard/Mouse Active');
+
+                    // Start polling
+                    keyboardMouseInterval = setInterval(pollKeyboardMouse, KEYBOARD_POLL_RATE);
+
+                    // Request pointer lock only when clicking on video feed
+                    const videoFeed = document.getElementById('videoFeed');
+                    if (videoFeed) {
+                        videoFeed.addEventListener('click', requestPointerLock);
+                    }
+                } catch (error) {
+                    console.error('Error enabling keyboard/mouse control:', error);
+                    alert('Failed to enable keyboard/mouse control');
+                    toggle.checked = false;
+                }
+            } else {
+                // Disable keyboard/mouse control on backend
+                try {
+                    await fetch('/control/keyboard_mouse/enable', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({enable: false})
+                    });
+
+                    // Disable keyboard/mouse control
+                    keyboardMouseEnabled = false;
+                    console.log('⚫ Keyboard/Mouse control disabled');
+                    updateKeyboardMouseStatus('inactive', '⚫ Keyboard/Mouse Disabled');
+
+                    // Stop polling
+                    if (keyboardMouseInterval) {
+                        clearInterval(keyboardMouseInterval);
+                        keyboardMouseInterval = null;
+                    }
+
+                    // Release pointer lock
+                    if (document.pointerLockElement) {
+                        document.exitPointerLock();
+                    }
+
+                    // Remove event listener from video feed
+                    const videoFeed = document.getElementById('videoFeed');
+                    if (videoFeed) {
+                        videoFeed.removeEventListener('click', requestPointerLock);
+                    }
+
+                    // Reset keys
+                    keysPressed = {};
+                    mouseMovement = {x: 0, y: 0};
+                } catch (error) {
+                    console.error('Error disabling keyboard/mouse control:', error);
+                }
+            }
+        }
+
+        function requestPointerLock() {
+            if (keyboardMouseEnabled && !pointerLocked) {
+                document.body.requestPointerLock();
+            }
+        }
+
+        function updateKeyboardMouseStatus(state, text) {
+            const status = document.getElementById('keyboardMouseStatus');
+            status.className = 'gamepad-status ' + state;
+            status.textContent = text;
+        }
+
+        // ========== Audio Streaming Functions ==========
+        // NOTE: Audio is now captured server-side using PyAudio.
+        // Browser only controls push-to-talk state via SocketIO.
+
+        let isTransmitting = false;
+        let audioStreamingEnabled = false;  // Track if user has enabled audio
+
+        async function toggleAudioStreaming() {
+            /**
+             * Mute or unmute audio playback instantly (no reconnection required).
+             * Audio stream is always connected, this just controls playback.
+             */
+            const toggle = document.getElementById('audioStreamingToggle');
+            const enable = toggle.checked;
+
+            try {
+                const response = await fetch('/audio/toggle', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({enable: enable})
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    audioStreamingEnabled = enable;
+
+                    // Update UI
+                    const audioStatus = document.getElementById('audioStatus');
+                    const audioControls = document.getElementById('audioControls');
+
+                    if (enable) {
+                        audioStatus.className = 'gamepad-status active';
+                        audioStatus.textContent = '🟢 Audio Unmuted (Playing)';
+                        // Show push-to-talk controls only if connected
+                        if (isConnected) {
+                            audioControls.style.display = 'block';
+                        }
+                        console.log('✅ Audio unmuted - playback enabled instantly');
+                    } else {
+                        audioStatus.className = 'gamepad-status';
+                        audioStatus.style.background = '#6c757d';
+                        audioStatus.textContent = '⚪ Audio Muted';
+                        audioControls.style.display = 'none';
+                        console.log('ℹ️ Audio muted - playback disabled instantly');
+                    }
+
+                    // Save preference to localStorage
+                    localStorage.setItem('audioStreamingEnabled', enable);
+
+                } else {
+                    console.error('Failed to toggle audio:', result.message);
+                    toggle.checked = !enable;  // Revert toggle
+                }
+
+            } catch (error) {
+                console.error('Error toggling audio streaming:', error);
+                toggle.checked = !enable;  // Revert toggle
+            }
+        }
+
+        async function initializeAudio() {
+            /**
+             * Enable push-to-talk button after connection.
+             * Audio is captured server-side, no browser microphone needed.
+             * Only called if audio streaming is enabled.
+             */
+            try {
+                // Enable push-to-talk button
+                const pushToTalkBtn = document.getElementById('pushToTalkBtn');
+                if (pushToTalkBtn) {
+                    pushToTalkBtn.disabled = false;
+                }
+
+                // Update status
+                const audioStatus = document.getElementById('audioStatus');
+                audioStatus.className = 'gamepad-status active';
+                audioStatus.textContent = '🟢 Audio Active (Bidirectional)';
+
+                console.log('✅ Push-to-talk enabled (server-side microphone)');
+
+            } catch (error) {
+                console.error('Error initializing audio:', error);
+            }
+        }
+
+        function startMicrophone() {
+            /**
+             * Start transmitting microphone audio (push-to-talk pressed).
+             */
+            if (isTransmitting) return;
+
+            isTransmitting = true;
+            socket.emit('start_microphone');
+
+            // Update UI
+            const statusText = document.getElementById('micStatusText');
+            const pushToTalkBtn = document.getElementById('pushToTalkBtn');
+            if (statusText) statusText.textContent = '🔴 Transmitting...';
+            if (statusText) statusText.style.color = '#dc3545';
+            if (pushToTalkBtn) pushToTalkBtn.style.background = '#dc3545';
+
+            console.log('🎤 Microphone transmission started');
+        }
+
+        function stopMicrophone() {
+            /**
+             * Stop transmitting microphone audio (push-to-talk released).
+             */
+            if (!isTransmitting) return;
+
+            isTransmitting = false;
+            socket.emit('stop_microphone');
+
+            // Update UI
+            const statusText = document.getElementById('micStatusText');
+            const pushToTalkBtn = document.getElementById('pushToTalkBtn');
+            if (statusText) statusText.textContent = 'Not transmitting';
+            if (statusText) statusText.style.color = '#666';
+            if (pushToTalkBtn) pushToTalkBtn.style.background = '';
+
+            console.log('🎤 Microphone transmission stopped');
+        }
+
+        // Keyboard event handlers for 'C' key push-to-talk
+        document.addEventListener('keydown', function(event) {
+            // Only handle 'C' key if not in an input field
+            if (event.key === 'c' || event.key === 'C') {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
+                    event.preventDefault();
+                    startMicrophone();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            if (event.key === 'c' || event.key === 'C') {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
+                    event.preventDefault();
+                    stopMicrophone();
+                }
+            }
+        });
+
+        async function testAudioPlayback() {
+            if (!isConnected) {
+                alert('Please connect to the robot first!');
+                return;
+            }
+
+            try {
+                console.log('🔊 Testing robot speaker...');
+                const response = await fetch('/audio/test', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to play test audio');
+                }
+
+                console.log('✅ Test audio sent to robot');
+                alert('Test beep sent to robot speaker. Did you hear it?');
+
+            } catch (error) {
+                console.error('Error testing audio:', error);
+                alert('Failed to test audio: ' + error.message);
+            }
+        }
+
+        // Keyboard event listeners
+        document.addEventListener('keydown', (e) => {
+            if (!keyboardMouseEnabled) return;
+
+            // Prevent default for control keys
+            if (['w', 'a', 's', 'd', 'q', 'e', 'r', ' '].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+
+            const key = e.key.toLowerCase();
+            const wasPressed = keysPressed[key];
+            keysPressed[key] = true;
+
+            // Handle action keys (non-movement)
+            if (e.key === ' ') {
+                // Emergency stop
+                handleKeyboardAction('emergency_stop');
+            } else if (key === 'e') {
+                // Stand up
+                handleKeyboardAction('stand_up');
+            } else if (key === 'q') {
+                // Crouch
+                handleKeyboardAction('crouch');
+            } else if (key === 'r') {
+                // Toggle lidar
+                handleKeyboardAction('toggle_lidar');
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (!keyboardMouseEnabled) return;
+
+            const key = e.key.toLowerCase();
+            keysPressed[key] = false;
+        });
+
+        // Mouse movement tracking
+        document.addEventListener('pointerlockchange', () => {
+            pointerLocked = document.pointerLockElement === document.body;
+            const mouseInfo = document.getElementById('mouseControlInfo');
+
+            if (pointerLocked) {
+                console.log('Pointer locked - mouse control active');
+                mouseInfo.style.display = 'block';
+            } else {
+                console.log('Pointer unlocked - mouse control inactive');
+                mouseInfo.style.display = 'none';
+                mouseMovement = {x: 0, y: 0};
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!keyboardMouseEnabled || !pointerLocked) return;
+
+            // Accumulate mouse movement
+            mouseMovement.x += e.movementX;
+            mouseMovement.y += e.movementY;
+        });
+
+        // Mouse wheel speed control
+        let speedIndicatorTimeout = null;
+
+        document.addEventListener('wheel', (e) => {
+            // Only respond when keyboard/mouse control is enabled AND pointer is locked
+            if (!keyboardMouseEnabled || !pointerLocked) return;
+
+            e.preventDefault();  // Prevent page scroll
+
+            // Get current settings
+            const kbMouseSettings = JSON.parse(localStorage.getItem('keyboardMouseSettings') || JSON.stringify(DEFAULT_KB_MOUSE_SETTINGS));
+            let currentLinearSpeed = parseFloat(kbMouseSettings.keyboard_linear_speed || 1.0);
+            let currentStrafeSpeed = parseFloat(kbMouseSettings.keyboard_strafe_speed || 1.0);
+
+            // Constants for wheel control
+            const WHEEL_STEP = 0.2;     // Change by 0.2x per wheel notch
+            const MIN_SPEED = 0.1;      // Minimum 0.1x (10% speed)
+            const MAX_SPEED = 2.0;      // Maximum 2.0x (200% speed)
+
+            // Calculate new speed (wheel up = increase, wheel down = decrease)
+            let newSpeed;
+            if (e.deltaY < 0) {
+                // Wheel up - increase speed
+                newSpeed = Math.min(MAX_SPEED, currentLinearSpeed + WHEEL_STEP);
+            } else {
+                // Wheel down - decrease speed
+                newSpeed = Math.max(MIN_SPEED, currentLinearSpeed - WHEEL_STEP);
+            }
+
+            // Round to 1 decimal place to avoid floating point issues
+            newSpeed = Math.round(newSpeed * 10) / 10;
+
+            // Update both linear and strafe speed together (synchronized)
+            updateKeyboardMouseSetting('keyboard_linear_speed', newSpeed);
+            updateKeyboardMouseSetting('keyboard_strafe_speed', newSpeed);
+
+            // Update slider positions in settings panel
+            const linearSlider = document.getElementById('keyboard-linear-speed');
+            const strafeSlider = document.getElementById('keyboard-strafe-speed');
+            if (linearSlider) linearSlider.value = newSpeed;
+            if (strafeSlider) strafeSlider.value = newSpeed;
+
+            // Show visual feedback
+            showSpeedIndicator(newSpeed);
+
+            console.log(`🎡 Mouse wheel speed adjustment: ${(newSpeed * 100).toFixed(0)}%`);
+        }, { passive: false });  // Required for preventDefault() to work
+
+        function showSpeedIndicator(speed) {
+            const indicator = document.getElementById('speedIndicator');
+            const speedValue = document.getElementById('speedValue');
+
+            if (!indicator || !speedValue) return;
+
+            // Update display
+            speedValue.textContent = `${(speed * 100).toFixed(0)}%`;
+            indicator.style.display = 'block';
+
+            // Auto-hide after 2 seconds
+            clearTimeout(speedIndicatorTimeout);
+            speedIndicatorTimeout = setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+
+        async function handleKeyboardAction(action) {
+            try {
+                const response = await fetch('/control/action', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action})
+                });
+
+                if (!response.ok) {
+                    console.error('Action failed:', action);
+                }
+
+                // Special handling for emergency stop
+                if (action === 'emergency_stop') {
+                    showEmergencyStop();
+                }
+            } catch (error) {
+                console.error('Error sending action:', error);
+            }
+        }
+
+        async function pollKeyboardMouse() {
+            if (!keyboardMouseEnabled || !isConnected) return;
+
+            // Calculate movement from keyboard
+            let forward = 0;
+            let strafe = 0;
+
+            if (keysPressed['w']) forward += 1;
+            if (keysPressed['s']) forward -= 1;
+            if (keysPressed['a']) strafe -= 1;  // A key = strafe left (negative)
+            if (keysPressed['d']) strafe += 1;  // D key = strafe right (positive)
+
+            // Get keyboard/mouse settings from localStorage
+            const kbMouseSettings = JSON.parse(localStorage.getItem('keyboardMouseSettings') || JSON.stringify(DEFAULT_KB_MOUSE_SETTINGS));
+            const mouseYawSens = parseFloat(kbMouseSettings.mouse_yaw_sensitivity || 0.5);
+            const mousePitchSens = parseFloat(kbMouseSettings.mouse_pitch_sensitivity || 0.25);
+            const kbLinearSpeed = parseFloat(kbMouseSettings.keyboard_linear_speed || 1.0);
+            const kbStrafeSpeed = parseFloat(kbMouseSettings.keyboard_strafe_speed || 1.0);
+            const maxLinear = parseFloat(kbMouseSettings.kb_max_linear_velocity || 0.6);
+            const maxStrafe = parseFloat(kbMouseSettings.kb_max_strafe_velocity || 0.4);
+            const maxRotation = parseFloat(kbMouseSettings.kb_max_rotation_velocity || 0.8);
+
+            // Calculate rotation from mouse (rate-based control)
+            // INCREASED MOUSE_SCALE_FACTOR from 0.02 to 0.08 for faster rotation
+            // Typical mouse movement: 1-50 pixels per interval for normal movement
+            // Fast swipes: 100-200 pixels per interval
+            // With 0.08 scale: 50px * 0.08 * 0.5 sens = 2.0 (good rotation)
+            //                  100px * 0.08 * 0.5 sens = 4.0 (clamped to 1.0, max rotation)
+            const MOUSE_SCALE_FACTOR = 0.08;  // Increased from 0.02 for faster rotation
+            let mouseYaw = mouseMovement.x * MOUSE_SCALE_FACTOR * mouseYawSens;
+            let mousePitch = mouseMovement.y * MOUSE_SCALE_FACTOR * mousePitchSens;
+
+            // Reset mouse movement after reading (rate-based control)
+            mouseMovement = {x: 0, y: 0};
+
+            // ========== VELOCITY RAMPING FOR SMOOTH ACCELERATION ==========
+            // Calculate target velocities from keyboard input
+            const targetLinear = forward * kbLinearSpeed * maxLinear;
+            const targetStrafe = strafe * kbStrafeSpeed * maxStrafe;
+
+            // Calculate time delta (in seconds) for this polling interval
+            const dt = KEYBOARD_POLL_RATE / 1000.0;  // 0.033 seconds (33ms)
+
+            // Apply acceleration/deceleration ramping for keyboard input
+            // Linear velocity (forward/backward)
+            if (Math.abs(targetLinear) > 0.01) {
+                // Accelerating toward target
+                const accelStep = ACCELERATION_RATE * dt;
+                if (currentVelocities.linear < targetLinear) {
+                    currentVelocities.linear = Math.min(currentVelocities.linear + accelStep, targetLinear);
+                } else if (currentVelocities.linear > targetLinear) {
+                    currentVelocities.linear = Math.max(currentVelocities.linear - accelStep, targetLinear);
+                }
+            } else {
+                // Decelerating to zero
+                const decelStep = DECELERATION_RATE * dt;
+                if (currentVelocities.linear > 0) {
+                    currentVelocities.linear = Math.max(0, currentVelocities.linear - decelStep);
+                } else if (currentVelocities.linear < 0) {
+                    currentVelocities.linear = Math.min(0, currentVelocities.linear + decelStep);
+                }
+            }
+
+            // Strafe velocity (left/right)
+            if (Math.abs(targetStrafe) > 0.01) {
+                // Accelerating toward target
+                const accelStep = ACCELERATION_RATE * dt;
+                if (currentVelocities.strafe < targetStrafe) {
+                    currentVelocities.strafe = Math.min(currentVelocities.strafe + accelStep, targetStrafe);
+                } else if (currentVelocities.strafe > targetStrafe) {
+                    currentVelocities.strafe = Math.max(currentVelocities.strafe - accelStep, targetStrafe);
+                }
+            } else {
+                // Decelerating to zero
+                const decelStep = DECELERATION_RATE * dt;
+                if (currentVelocities.strafe > 0) {
+                    currentVelocities.strafe = Math.max(0, currentVelocities.strafe - decelStep);
+                } else if (currentVelocities.strafe < 0) {
+                    currentVelocities.strafe = Math.min(0, currentVelocities.strafe + decelStep);
+                }
+            }
+
+            // Mouse rotation (instant response, no ramping for mouse - feels more responsive)
+            // Clamp mouse rotation to -1.0 to 1.0 range
+            const targetRotation = Math.max(-1.0, Math.min(1.0, mouseYaw)) * maxRotation;
+            currentVelocities.rotation = targetRotation;
+
+            // Use ramped velocities for robot control
+            const vx = currentVelocities.linear;
+            const vy = -currentVelocities.strafe;  // Backend inverts for correct direction
+            const vyaw = -currentVelocities.rotation;  // Backend inverts for correct direction
+
+            // Convert back to normalized gamepad-style values for sending to backend
+            // Backend expects lx, ly, rx in -1.0 to 1.0 range
+            const lx = maxStrafe > 0 ? -vy / maxStrafe : 0;  // Backend inverts, so we pre-invert
+            const ly = maxLinear > 0 ? vx / maxLinear : 0;
+            const rx = maxRotation > 0 ? -vyaw / maxRotation : 0;  // Backend inverts, so we pre-invert
+            const ry = 0;  // Pitch not used for movement
+
+            // Update display
+            document.getElementById('val-kb-forward').textContent = vx.toFixed(2);
+            document.getElementById('val-kb-strafe').textContent = vy.toFixed(2);
+            document.getElementById('val-kb-yaw').textContent = vyaw.toFixed(2);
+            document.getElementById('val-kb-pitch').textContent = mousePitch.toFixed(2);
+
+            // Calculate velocity magnitude for display
+            const velocityMagnitude = Math.sqrt(vx*vx + vy*vy + vyaw*vyaw);
+
+            // Update velocity status display
+            const velocityStatus = document.getElementById('velocityStatus');
+            if (velocityStatus) {
+                velocityStatus.textContent = velocityMagnitude.toFixed(2) + ' m/s';
+
+                if (velocityMagnitude > 0.01) {
+                    velocityStatus.classList.remove('stopped');
+                    velocityStatus.classList.add('moving');
+                } else {
+                    velocityStatus.classList.remove('moving');
+                    velocityStatus.classList.add('stopped');
+                }
+            }
+
+            // Send movement command via WebSocket (preferred) or HTTP (fallback)
+            if (!commandInFlight) {
+                commandInFlight = true;
+                const sendTime = performance.now();
+
+                // Debug log (only when there's movement)
+                if (velocityMagnitude > 0.01) {
+                    console.log(`[KB/Mouse] Sending command: lx=${lx.toFixed(2)}, ly=${ly.toFixed(2)}, rx=${rx.toFixed(2)} → vx=${vx.toFixed(2)}, vy=${vy.toFixed(2)}, vyaw=${vyaw.toFixed(2)}`);
+                }
+
+                // Include velocity limits in the command so backend uses keyboard/mouse settings
+                const commandData = {
+                    lx, ly, rx, ry,
+                    max_linear: maxLinear,
+                    max_strafe: maxStrafe,
+                    max_rotation: maxRotation,
+                    source: 'keyboard_mouse'  // Identify this as keyboard/mouse input
+                };
+
+                if (useWebSocket && socketConnected) {
+                    // ========== WEBSOCKET PATH (LOW LATENCY) ==========
+                    currentCommandStartTime = performance.now();
+                    socket.emit('control_command', commandData);
+                    commandInFlight = false;
+                } else {
+                    // ========== HTTP FALLBACK PATH ==========
+                    fetch('/control/command', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(commandData)
+                    })
+                    .then(response => {
+                        const latency = performance.now() - sendTime;
+                        updateLatencyDisplay(latency, 'HTTP');
+                        commandInFlight = false;
+
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Command failed');
+                    })
+                    .catch(error => {
+                        commandInFlight = false;
+                        console.error('Error sending movement command:', error);
+                    });
+                }
+            }
+        }
+
+        // Initialize form fields
+        updateFormFields();
+
+        // Load saved IP address from localStorage
+        const savedIP = localStorage.getItem('lastRobotIP');
+        if (savedIP) {
+            document.getElementById('ip').value = savedIP;
+            console.log('Loaded saved IP address:', savedIP);
+        }
+
+        // Load saved audio streaming preference from localStorage
+        const savedAudioEnabled = localStorage.getItem('audioStreamingEnabled');
+        if (savedAudioEnabled !== null) {
+            const audioToggle = document.getElementById('audioStreamingToggle');
+            const enable = savedAudioEnabled === 'true';
+            audioToggle.checked = enable;
+            audioStreamingEnabled = enable;
+
+            // Update UI to match saved preference
+            const audioStatus = document.getElementById('audioStatus');
+            const audioControls = document.getElementById('audioControls');
+
+            if (enable) {
+                audioStatus.className = 'gamepad-status active';
+                audioStatus.textContent = '🟢 Audio Enabled (Connect to activate)';
+                audioControls.style.display = 'block';
+                console.log('✅ Loaded audio preference: ENABLED');
+            } else {
+                audioStatus.className = 'gamepad-status';
+                audioStatus.style.background = '#6c757d';
+                audioStatus.textContent = '⚪ Audio Disabled';
+                audioControls.style.display = 'none';
+                console.log('ℹ️ Loaded audio preference: DISABLED');
+            }
+
+            // Send preference to backend
+            fetch('/audio/toggle', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({enable: enable})
+            }).catch(err => console.error('Error setting audio preference:', err));
+        }
+
+        // ========== Keyboard/Mouse Settings Functions ==========
+
+        function toggleKeyboardMouseSettings() {
+            const content = document.getElementById('kbMouseSettingsContent');
+            const icon = document.getElementById('kbMouseSettingsToggleIcon');
+
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.textContent = '▼';
+            } else {
+                content.classList.add('expanded');
+                icon.textContent = '▲';
+                loadKeyboardMouseSettings(); // Load current settings when opening
+            }
+        }
+
+        function loadKeyboardMouseSettings() {
+            // Load from localStorage or use defaults
+            const settings = JSON.parse(localStorage.getItem('keyboardMouseSettings') || JSON.stringify(DEFAULT_KB_MOUSE_SETTINGS));
+
+            // Update UI with current settings
+            updateKbMouseSettingUI('mouse-yaw-sensitivity', 'val-mouse-yaw-sensitivity', settings.mouse_yaw_sensitivity);
+            updateKbMouseSettingUI('mouse-pitch-sensitivity', 'val-mouse-pitch-sensitivity', settings.mouse_pitch_sensitivity);
+            updateKbMouseSettingUI('keyboard-linear-speed', 'val-keyboard-linear-speed', settings.keyboard_linear_speed);
+            updateKbMouseSettingUI('keyboard-strafe-speed', 'val-keyboard-strafe-speed', settings.keyboard_strafe_speed);
+            updateKbMouseSettingUI('kb-max-linear-velocity', 'val-kb-max-linear-velocity', settings.kb_max_linear_velocity);
+            updateKbMouseSettingUI('kb-max-strafe-velocity', 'val-kb-max-strafe-velocity', settings.kb_max_strafe_velocity);
+            updateKbMouseSettingUI('kb-max-rotation-velocity', 'val-kb-max-rotation-velocity', settings.kb_max_rotation_velocity);
+
+            console.log('Keyboard/Mouse settings loaded:', settings);
+        }
+
+        function updateKbMouseSettingUI(sliderId, valueId, value) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(valueId);
+
+            if (slider && valueSpan) {
+                slider.value = value;
+                valueSpan.textContent = value.toFixed(2);
+            }
+        }
+
+        function updateKeyboardMouseSetting(settingName, value) {
+            // Update the display value
+            const valueId = 'val-' + settingName.replace(/_/g, '-');
+            const valueSpan = document.getElementById(valueId);
+
+            console.log(`[KB/Mouse Settings] Updating ${settingName} to ${value}`);
+            console.log(`[KB/Mouse Settings] Looking for element ID: ${valueId}`);
+
+            if (valueSpan) {
+                valueSpan.textContent = parseFloat(value).toFixed(2);
+                console.log(`[KB/Mouse Settings] ✅ Display updated to: ${parseFloat(value).toFixed(2)}`);
+            } else {
+                console.error(`[KB/Mouse Settings] ❌ Element not found: ${valueId}`);
+            }
+
+            // Load current settings
+            const settings = JSON.parse(localStorage.getItem('keyboardMouseSettings') || JSON.stringify(DEFAULT_KB_MOUSE_SETTINGS));
+
+            // Update the specific setting
+            settings[settingName] = parseFloat(value);
+
+            // Save to localStorage
+            localStorage.setItem('keyboardMouseSettings', JSON.stringify(settings));
+
+            console.log(`[KB/Mouse Settings] ✅ Saved to localStorage:`, settings);
+        }
+
+        function resetKeyboardMouseSettings() {
+            // Reset to defaults
+            localStorage.setItem('keyboardMouseSettings', JSON.stringify(DEFAULT_KB_MOUSE_SETTINGS));
+
+            // Reload UI
+            loadKeyboardMouseSettings();
+
+            console.log('Keyboard/Mouse settings reset to defaults');
+            showMessage('Settings reset to defaults', 'success');
+        }
+
+        // ========== Gamepad Settings Functions ==========
+
+        function toggleSettings() {
+            const content = document.getElementById('settingsContent');
+            const icon = document.getElementById('settingsToggleIcon');
+
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.textContent = '▼';
+            } else {
+                content.classList.add('expanded');
+                icon.textContent = '▲';
+                loadSettings(); // Load current settings when opening
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/control/settings');
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const settings = data.settings;
+
+                    // Update UI with current settings
+                    updateSettingUI('deadzone-left', 'val-deadzone-left', settings.deadzone_left_stick);
+                    updateSettingUI('deadzone-right', 'val-deadzone-right', settings.deadzone_right_stick);
+                    updateSettingUI('sens-linear', 'val-sens-linear', settings.sensitivity_linear);
+                    updateSettingUI('sens-strafe', 'val-sens-strafe', settings.sensitivity_strafe);
+                    updateSettingUI('sens-rotation', 'val-sens-rotation', settings.sensitivity_rotation);
+                    updateSettingUI('speed-mult', 'val-speed-mult', settings.speed_multiplier);
+                    updateSettingUI('max-linear', 'val-max-linear', settings.max_linear_velocity);
+                    updateSettingUI('max-strafe', 'val-max-strafe', settings.max_strafe_velocity);
+                    updateSettingUI('max-rotation', 'val-max-rotation', settings.max_rotation_velocity);
+
+                    console.log('Settings loaded:', settings);
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        function updateSettingUI(sliderId, valueId, value) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(valueId);
+
+            if (slider && valueSpan) {
+                slider.value = value;
+                valueSpan.textContent = value.toFixed(2);
+            }
+        }
+
+        async function updateSetting(settingName, value) {
+            // Update the display value
+            const valueId = 'val-' + settingName.replace(/_/g, '-').replace('deadzone-', 'deadzone-').replace('sensitivity-', 'sens-').replace('max-', 'max-').replace('multiplier', 'mult');
+            const valueSpan = document.getElementById(valueId);
+            if (valueSpan) {
+                valueSpan.textContent = parseFloat(value).toFixed(2);
+            }
+
+            // Send update to server
+            try {
+                const response = await fetch('/control/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({[settingName]: parseFloat(value)})
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('Setting updated:', settingName, '=', value);
+
+                    // Save to localStorage
+                    localStorage.setItem('gamepadSettings', JSON.stringify(data.settings));
+                }
+            } catch (error) {
+                console.error('Error updating setting:', error);
+            }
+        }
+
+        async function applyPreset(presetName) {
+            try {
+                const response = await fetch('/control/settings/preset', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({preset: presetName})
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('Preset applied:', presetName);
+
+                    // Update UI with new settings
+                    loadSettings();
+
+                    // Update active button
+                    document.querySelectorAll('.btn-preset').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    event.target.classList.add('active');
+
+                    // Save to localStorage
+                    localStorage.setItem('gamepadSettings', JSON.stringify(data.settings));
+                    localStorage.setItem('gamepadPreset', presetName);
+
+                    showMessage(`Applied ${presetName} preset`, 'success');
+                }
+            } catch (error) {
+                console.error('Error applying preset:', error);
+                showMessage('Error applying preset', 'error');
+            }
+        }
+
+        // Load saved settings on page load
+        window.addEventListener('load', () => {
+            // Load gamepad settings
+            const savedSettings = localStorage.getItem('gamepadSettings');
+            const savedPreset = localStorage.getItem('gamepadPreset');
+
+            if (savedSettings) {
+                console.log('Restoring saved gamepad settings');
+                // Settings will be loaded when panel is opened
+            }
+
+            if (savedPreset) {
+                // Highlight the saved preset
+                document.querySelectorAll('.btn-preset').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.textContent.toLowerCase().includes(savedPreset)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            // Initialize keyboard/mouse settings if not present
+            const savedKbMouseSettings = localStorage.getItem('keyboardMouseSettings');
+            if (!savedKbMouseSettings) {
+                console.log('Initializing default keyboard/mouse settings');
+                localStorage.setItem('keyboardMouseSettings', JSON.stringify(DEFAULT_KB_MOUSE_SETTINGS));
+            } else {
+                console.log('Restoring saved keyboard/mouse settings');
+            }
+        });
+
+        // ========== LATENCY TESTING ==========
+
+        async function testHttpLatency() {
+            try {
+                const testCommand = {
+                    lx: 0.0,
+                    ly: 0.3,  // Move forward slowly
+                    rx: 0.0,
+                    ry: 0.0
+                };
+
+                const startTime = performance.now();
+
+                const response = await fetch('/control/command', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(testCommand)
+                });
+
+                const latency = performance.now() - startTime;
+
+                if (response.ok) {
+                    document.getElementById('httpLatency').textContent = latency.toFixed(1);
+                    document.getElementById('httpLatency').style.color = '#007bff';
+                    updateLatencyComparison();
+
+                    // Stop robot after 0.5 seconds
+                    setTimeout(async () => {
+                        await fetch('/control/command', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({lx: 0, ly: 0, rx: 0, ry: 0})
+                        });
+                    }, 500);
+                } else {
+                    showMessage('HTTP test failed', 'error');
+                }
+            } catch (error) {
+                console.error('HTTP latency test error:', error);
+                showMessage('HTTP test error: ' + error.message, 'error');
+            }
+        }
+
+        async function testWebSocketLatency() {
+            try {
+                if (!socketConnected) {
+                    showMessage('WebSocket not connected', 'error');
+                    return;
+                }
+
+                const testCommand = {
+                    lx: 0.0,
+                    ly: 0.3,  // Move forward slowly
+                    rx: 0.0,
+                    ry: 0.0
+                };
+
+                const startTime = performance.now();
+
+                // Send via WebSocket
+                socket.emit('control_command', testCommand);
+
+                const latency = performance.now() - startTime;
+
+                document.getElementById('websocketLatency').textContent = latency.toFixed(1);
+                document.getElementById('websocketLatency').style.color = '#28a745';
+                updateLatencyComparison();
+
+                // Stop robot after 0.5 seconds
+                setTimeout(() => {
+                    socket.emit('control_command', {lx: 0, ly: 0, rx: 0, ry: 0});
+                }, 500);
+
+            } catch (error) {
+                console.error('WebSocket latency test error:', error);
+                showMessage('WebSocket test error: ' + error.message, 'error');
+            }
+        }
+
+        async function testWebRTCLatency() {
+            try {
+                const testCommand = {
+                    vx: 0.3,  // Move forward slowly
+                    vy: 0.0,
+                    vyaw: 0.0
+                };
+
+                const startTime = performance.now();
+
+                const response = await fetch('/webrtc/test_direct_command', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(testCommand)
+                });
+
+                const latency = performance.now() - startTime;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('webrtcLatency').textContent = latency.toFixed(1);
+                    document.getElementById('webrtcLatency').style.color = '#28a745';
+                    updateLatencyComparison();
+
+                    console.log('WebRTC test result:', data);
+
+                    // Stop robot after 0.5 seconds
+                    setTimeout(async () => {
+                        await fetch('/webrtc/test_direct_command', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({vx: 0, vy: 0, vyaw: 0})
+                        });
+                    }, 500);
+                } else {
+                    showMessage('WebRTC test failed', 'error');
+                }
+            } catch (error) {
+                console.error('WebRTC latency test error:', error);
+                showMessage('WebRTC test error: ' + error.message, 'error');
+            }
+        }
+
+        function updateLatencyComparison() {
+            const httpLatency = parseFloat(document.getElementById('httpLatency').textContent);
+            const websocketLatency = parseFloat(document.getElementById('websocketLatency').textContent);
+            const webrtcLatency = parseFloat(document.getElementById('webrtcLatency').textContent);
+
+            const improvementSpan = document.getElementById('latencyImprovement');
+
+            // Find the best (lowest) latency
+            const latencies = [];
+            if (!isNaN(httpLatency)) latencies.push({name: 'HTTP', value: httpLatency});
+            if (!isNaN(websocketLatency)) latencies.push({name: 'WebSocket', value: websocketLatency});
+            if (!isNaN(webrtcLatency)) latencies.push({name: 'WebRTC', value: webrtcLatency});
+
+            if (latencies.length === 0) {
+                improvementSpan.textContent = '--';
+                return;
+            }
+
+            // Sort by latency (lowest first)
+            latencies.sort((a, b) => a.value - b.value);
+
+            const best = latencies[0];
+            const worst = latencies[latencies.length - 1];
+            const improvement = worst.value - best.value;
+            const improvementPercent = ((improvement / worst.value) * 100).toFixed(1);
+
+            if (latencies.length >= 2) {
+                improvementSpan.textContent = `${best.name} is fastest (${improvement.toFixed(1)}ms / ${improvementPercent}% faster) ⚡`;
+                improvementSpan.style.color = '#28a745';
+            } else {
+                improvementSpan.textContent = `${best.name}: ${best.value.toFixed(1)}ms`;
+                improvementSpan.style.color = '#6c757d';
+            }
+        }
+    </script>
+</body>
+</html>
+
